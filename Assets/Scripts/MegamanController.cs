@@ -72,6 +72,12 @@ public class MegamanController : MonoBehaviour {
         }
 
         spriteRenderer.flipX = isFacingLeft;
+
+        // aula 3
+        if (RaycastAgainstLayer("Ground", footMegaman))
+        {
+            isLand = false;
+        }
     }
 
     void HandleVerticalMovement()
@@ -85,7 +91,7 @@ public class MegamanController : MonoBehaviour {
         if (Input.GetButtonDown("Jump") && isLand)
         {
             isJumping = true;
-            rigidBodyVar.AddForce(new Vector2 (rigidBodyVar.velocity.x , jumpForce));
+            rigidBodyVar.AddForce(new Vector2 (0 , jumpForce));
         } else {
             isJumping = false;
         }
@@ -94,5 +100,35 @@ public class MegamanController : MonoBehaviour {
     void MoveCharacterController()
     {
         rigidBodyVar.velocity = moveSpeed;
+    }
+
+    RaycastHit2D RaycastAgainstLayer(string layerName, Transform endPoint)
+    {
+        //layer - 00000000000000000000000000001001
+        int layer = LayerMask.NameToLayer(layerName); // camada 1, 2, 3...
+        int layerMask = 1 << layer; // camada 2 -> 100, camada 4 -> 10000
+        // camadas 2,4 | (1 << 2) + (1 << 4) | 100 + 10000 = 10100
+
+        Vector2 originPosition = new Vector2(footMegaman.position.x, footMegaman.position.y);
+        float rayLength = Mathf.Abs(endPoint.localPosition.y);
+        Vector2 direction = endPoint.localPosition.normalized;
+
+        RaycastHit2D hit2d = Physics2D.Raycast(originPosition, direction, rayLength, layerMask);
+
+        #if UNITY_EDITOR
+            Color color;
+            if(hit2d != null && hit2d.collider != null)
+            {
+                color = Color.green; // acerta o chão
+            } else
+            {
+                color = Color.red; // ñ acerta o chão
+            }
+
+            Debug.DrawLine(originPosition, // inicio
+                originPosition + direction * rayLength, //fim
+                color, 0f, false);
+        #endif
+        return hit2d;
     }
 }
